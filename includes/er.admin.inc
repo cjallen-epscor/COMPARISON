@@ -27,7 +27,7 @@ function er_settings() {
   $form['er_start_date'] = array(
     '#type' => 'date',
     '#title' => t('Start Date of EPSCoR Grant:'),
-    '#default_value' => $start_date?$start_date:array( 'year'=>'2009','month'=>'9', 'day'=>'15'),//date('Y-m-d',, $start_date?$start_date:mktime(0, 0, 0, 9, 15, 2009)),
+    '#default_value' => $start_date?$start_date:array( 'year'=>'2009','month'=>'9', 'day'=>'15'),//date('Y-m-d', $start_date?$start_date:mktime(0, 0, 0, 9, 15, 2009)),
     '#description' => t('This date will be used as the start of the grant. This effects the date ranges shown on the accomplishments table.'),
 		'#required' => true,
   );

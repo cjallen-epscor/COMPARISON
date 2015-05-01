@@ -18,7 +18,7 @@ define('ER_MODULE_DIR', drupal_get_path('module', 'er'));
 define('ER_INSTALL_DIR', ER_MODULE_DIR . '/install');
 define('ER_INCLUDES_DIR', ER_MODULE_DIR . '/includes');
 
-define('ER_DATE_FORMAT', "M j, Y");
+define('ER_DATE_FORMAT', "m/j/Y");
 
 require_once ER_MODULE_DIR . '/includes/form_logic.inc';
 require_once ER_MODULE_DIR . '/includes/node_logic.inc';
@@ -121,7 +121,8 @@ function er_permission(){
 			'title' => t('Access EPSCoR Module content')
 		),
 		ER_DOWNLOAD_PERMISSION=>array(
-			'title' => t('Access EPSCoR Module excel sheets')
+			'title' => t('Access EPSCoR Module excel sheets'),
+			'description' => t('Display the download NSF table link on the Accomplishments tab')
 		),
 	);
 } // function er_perm()
@@ -463,7 +464,7 @@ function er_menu() {
 		'description' => 'Gives a summary of meta-information about the user.',
 		'page callback' => 'er_user_participating_status',
 		'page arguments' => array(1),
-		'access arguments' => array('access user profiles'),
+		'access arguments' => array(ER_ADMIN_PERMISSION),
 		'type' => MENU_LOCAL_TASK,
 	);
 	return $items;

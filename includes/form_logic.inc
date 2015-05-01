@@ -118,11 +118,21 @@ function er_form_er_collaborators_node_form_alter(&$form, &$form_state, $form_id
 		$participating = er_is_user_participating($user->uid, $collab_range);
 		$status = $participating?'Participant':'Collaborator';
 		$form_state['input']['field_er_collab_name']['und'][0]['value'] = $u->field_er_realname->value();
-		$form_state['input']['field_er_collab_inst_ref']['und'] = array_pop($u->field_er_inst_ref->raw());
+		
+		// Earlier/original code	
+		//$form_state['input']['field_er_collab_inst_ref']['und'] = array_pop($u->field_er_inst_ref->raw());
+		
+		// New Version - that resolves the error:
+		//
+		// modified by Chris - cjallen@epscor.unm.edu
+		$arraypopvalue = $u->field_er_inst_ref->raw();
+		$form_state['input']['field_er_collab_inst_ref']['und'] = array_pop($arraypopvalue);
+		
 		$form_state['input']['field_er_collab_user_status']['und'] = $status;
 		$form_state['input']['field_er_collab_department_unit']['und'][0]['value'] = $u->field_er_department->value();
 		unset($form_state['attached_user']);
 		drupal_set_message(t('Please verify the auto-filled values below, then click save.'), 'warning');
+
 	}
 	//require_once(ER_INCLUDES_DIR . '/quick_add_institution.inc');//lazy load the code; less clutter in here + doesn't need to load on every page load.
 	//_quick_add_inst_form_alter($form, $form_state, 'field_er_collab_inst_ref');
@@ -824,11 +834,11 @@ function er_form_user_profile_form_alter(&$form, &$form_state, $form_id){
 	
 	// actual undergraduate completion
 	$form['field_er_act_under']['#states'] = array(
-			//'visible' => array($undergrad, $grad_student), 
-			//this is the original ER code, NM removes the field 'undergrad' graduation date for Graduate Students
-		'visible' => $undergrad,	 			
-	);	 
-
+	//'visible' => array($undergrad, $grad_student), <--- this is the original ER code, 
+	// NM removes the field 'undergrad' graduation date for Graduate Students
+	// mjdaniel@nmepscor.unm.edu informed NM developers that this field is unnecessary for data collection in the outputs table.
+	'visible' => $undergrad,	 
+	);
 	// actual masters completion
 	$form['field_er_act_masters']['#states'] = array(
 		'visible' => $grad_student,
@@ -861,38 +871,14 @@ function er_form_user_profile_form_alter(&$form, &$form_state, $form_id){
 		':input[name="field_er_rcr_completion_bool[und]"]' => array('checked' => TRUE),
 	);
 	
-	// create variable "$completed_rcr_false" so that fields can be hidden if "I have completed RCR certifications" is NOT checked
-	$completed_rcr_false = array(
-		':input[name="field_er_rcr_completion_bool[und]"]' => array('checked' => FALSE),
-	);
-	
-	 // Request from MJ (03/25/14) to hide these "RCR Online" & "RCR In-Person" upload fields on User Profile
+	$form['field_er_rcr_online']['#states'] = 
+	$form['field_er_rcr_in_person']['#states'] =
+	$form['field_er_additional_doc']['#states'] =
 	$form['field_er_rcr_online_ul']['#states'] = 
 	$form['field_er_rcr_inperson_ul']['#states'] = array(
-		'invisible' => array($completed_rcr, $completed_rcr_false)
-		);
-	
-	 // Request from MJ (03/25/14) to make the "RCR In-Person" and "RCR Online" fields hiden if RCR box is unchecked on the user profile for grad students
-	$form['field_er_rcr_in_person']['#states'] =
-	$form['field_er_rcr_online']['#states'] =
-	$form['field_er_additional_doc']['#states'] = array(
-		'invisible' => $completed_rcr_false,
-		//'optional' => $completed_rcr_false
-	);
-		
-	 // Request from MJ (03/25/14) to make the "RCR In-Person" and "RCR Online" fields optional on the user profile
-	$form['field_er_rcr_in_person']['#states'] =
-	$form['field_er_rcr_online']['#states'] = array(
 		'visible' => $completed_rcr,
-		//'optional' => $completed_rcr,	
+		'required' => $completed_rcr,
 	);
-
-	// Request from MJ (03/25/14) to make the "Please upload your RCR certificate" required on User Profile
-	$form['field_er_additional_doc']['#states'] = array(
-		'visible' => $completed_rcr,
-		'required' => $completed_rcr,	
-	);
-
 	
 	// Data collection Tab
 	// show all the fields if they click the checkbox that " I do/not plan to be collecting data through my research. "
@@ -1019,7 +1005,7 @@ function fs_empty($fs, $field){
  */
 function er_field_group_build_pre_render_alter(&$element){
 	// d($element, 'element');
-
+	
 	// This IF block was used for the User Profile
 	if (isset($element['group_er_certs']) && isset($element['group_er_data'])){
 		$element['group_er_certs']['#states'] = array(
@@ -1047,8 +1033,7 @@ function er_field_group_build_pre_render_alter(&$element){
 		
 	// This IF block is used for the Publications Content Type		
 	if (isset($element['group_er_journal'])){
-			
-	// Make Publication Info group visible/invisible depending on the selection
+		// Make Publication Info group visible/invisible depending on the selection
 		
 		// values for Publication Type field
 		$none = array(
@@ -1074,7 +1059,7 @@ function er_field_group_build_pre_render_alter(&$element){
 		// ... 'Publication Type' contains values other values:
 		// ...     (eg. Journal Article, Book)
 		
-		// This was the old version that worked with field_group version 1.3
+			// This was the old version that worked with field_group version 1.3
 		// The patch includes the 'id' element that gets stripped for the fieldset 'fieldgroup' cck field
 				
 		//$element['group_er_journal']['#states'] = array(
@@ -1090,6 +1075,7 @@ function er_field_group_build_pre_render_alter(&$element){
 	}
 
 }
+
 
 // Todd asked that we have more specific labels, so here they are
 function er_date_label($form, &$form_state) {
@@ -1208,3 +1194,4 @@ function _deny_direct_form_access(&$form){
 	else
 		return false;
 }
+
